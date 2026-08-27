@@ -1,0 +1,222 @@
+// ==========================================================
+// سبزچت — Database Schema (PostgreSQL via Prisma)
+// ==========================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- USERS ----------
+
+model User {
+  id            String   @id @default(uuid())
+  phone         String   @unique
+  username      String?  @unique
+  displayName   String
+  bio           String?
+  avatarUrl     String?
+  isOnline      Boolean  @default(false)
+  lastSeenAt    DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  // relations
+  participants  ChatParticipant[]
+  messages      Message[]
+  reactions     MessageReaction[]
+  stories       Story[]
+  storyViews    StoryView[]
+  contactsOf    Contact[]         @relation("ContactOwner")
+  contactedBy   Contact[]         @relation("ContactTarget")
+  callsStarted  Call[]            @relation("CallInitiator")
+  callParticipants CallParticipant[]
+  devices       Device[]
+}
+
+// push-notification tokens (one user can have many devices)
+model Device {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  pushToken String
+  platform  String   // "ios" | "android" | "web"
+  createdAt DateTime @default(now())
+}
+
+model Contact {
+  id         String @id @default(uuid())
+  ownerId    String
+  owner      User   @relation("ContactOwner", fields: [ownerId], references: [id])
+  targetId   String
+  target     User   @relation("ContactTarget", fields: [targetId], references: [id])
+  nickname   String?
+  createdAt  DateTime @default(now())
+
+  @@unique([ownerId, targetId])
+}
+
+// ---------- CHATS (direct or group) ----------
+
+model Chat {
+  id           String   @id @default(uuid())
+  type         ChatType @default(DIRECT)
+  title        String?  // used for groups
+  avatarUrl    String?  // used for groups
+  createdAt    DateTime @default(now())
+
+  participants ChatParticipant[]
+  messages     Message[]
+  calls        Call[]
+}
+
+enum ChatType {
+  DIRECT
+  GROUP
+}
+
+model ChatParticipant {
+  id          String   @id @default(uuid())
+  chatId      String
+  chat        Chat     @relation(fields: [chatId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  role        ParticipantRole @default(MEMBER)
+  isPinned    Boolean  @default(false)
+  isMuted     Boolean  @default(false)
+  lastReadAt  DateTime @default(now())
+  joinedAt    DateTime @default(now())
+
+  @@unique([chatId, userId])
+}
+
+enum ParticipantRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+// ---------- MESSAGES ----------
+
+model Message {
+  id          String      @id @default(uuid())
+  chatId      String
+  chat        Chat        @relation(fields: [chatId], references: [id])
+  senderId    String
+  sender      User        @relation(fields: [senderId], references: [id])
+  type        MessageType @default(TEXT)
+  content     String?     // text body (nullable for pure media messages)
+  mediaUrl    String?
+  replyToId   String?
+  replyTo     Message?    @relation("ReplyTo", fields: [replyToId], references: [id])
+  replies     Message[]   @relation("ReplyTo")
+  status      MessageStatus @default(SENT)
+  createdAt   DateTime    @default(now())
+  editedAt    DateTime?
+  deletedAt   DateTime?
+
+  reactions   MessageReaction[]
+
+  @@index([chatId, createdAt])
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  FILE
+  STICKER
+  SYSTEM
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+}
+
+model MessageReaction {
+  id        String  @id @default(uuid())
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id])
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  emoji     String
+
+  @@unique([messageId, userId, emoji])
+}
+
+// ---------- STORIES ----------
+
+model Story {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  mediaUrl  String
+  type      StoryType @default(IMAGE)
+  caption   String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime // createdAt + 24h, enforced by a cleanup job
+
+  views     StoryView[]
+}
+
+enum StoryType {
+  IMAGE
+  VIDEO
+  TEXT
+}
+
+model StoryView {
+  id        String   @id @default(uuid())
+  storyId   String
+  story     Story    @relation(fields: [storyId], references: [id])
+  viewerId  String
+  viewer    User     @relation(fields: [viewerId], references: [id])
+  viewedAt  DateTime @default(now())
+
+  @@unique([storyId, viewerId])
+}
+
+// ---------- CALLS ----------
+
+model Call {
+  id           String     @id @default(uuid())
+  chatId       String
+  chat         Chat       @relation(fields: [chatId], references: [id])
+  initiatorId  String
+  initiator    User       @relation("CallInitiator", fields: [initiatorId], references: [id])
+  type         CallType   @default(AUDIO)
+  status       CallStatus @default(RINGING)
+  startedAt    DateTime   @default(now())
+  endedAt      DateTime?
+
+  participants CallParticipant[]
+}
+
+enum CallType {
+  AUDIO
+  VIDEO
+}
+
+enum CallStatus {
+  RINGING
+  ONGOING
+  ENDED
+  MISSED
+  DECLINED
+}
+
+model CallParticipant {
+  id       String   @id @default(uuid())
+  callId   String
+  call     Call     @relation(fields: [callId], references: [id])
+  userId   String
+  user     User     @relation(fields: [userId], references: [id])
+  joinedAt DateTime?
+  leftAt   DateTime?
+}
