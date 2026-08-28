@@ -8,8 +8,28 @@ function generateOtp() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// مرحله ۱: کاربر شماره موبایلشو می‌فرسته، کد تایید ساخته و (فعلاً) لاگ می‌شه
-// در پروداکشن اینجا باید به یه سرویس پیامک (کاوه‌نگار، Twilio و...) وصل بشه
+// کد تایید رو از طریق بات تلگرام می‌فرسته (چون سرویس پیامک ایرانی هنوز وصل نشده)
+async function sendOtpViaTelegram(phone, code) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) {
+    console.log(`[OTP] ${phone} -> ${code}`); // fallback: لاگ ساده اگه بات تنظیم نشده باشه
+    return;
+  }
+  const text = `🌱 سبزچت\nکد تایید برای ${phone}:\n${code}`;
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text }),
+    });
+  } catch (err) {
+    console.error('ارسال پیام تلگرام ناموفق بود:', err.message);
+    console.log(`[OTP fallback] ${phone} -> ${code}`);
+  }
+}
+
+// مرحله ۱: کاربر شماره موبایلشو می‌فرسته، کد تایید ساخته و از طریق بات تلگرام ارسال می‌شه
 async function requestOtp(req, res) {
   const { phone } = req.body;
   if (!phone) return res.status(400).json({ error: 'شماره موبایل الزامیه' });
@@ -17,7 +37,7 @@ async function requestOtp(req, res) {
   const code = generateOtp();
   otpStore.set(phone, { code, expiresAt: Date.now() + 2 * 60 * 1000 });
 
-  console.log(`[OTP] ${phone} -> ${code}`); // TODO: جایگزین با ارسال پیامک واقعی
+  await sendOtpViaTelegram(phone, code);
 
   res.json({ message: 'کد تایید ارسال شد' });
 }
@@ -44,3 +64,4 @@ async function verifyOtp(req, res) {
 }
 
 module.exports = { requestOtp, verifyOtp };
+
