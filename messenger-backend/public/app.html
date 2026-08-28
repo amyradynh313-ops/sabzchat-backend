@@ -191,6 +191,7 @@ async function api(path, options={}){
 }
 
 async function requestOtp(){
+  alert('دکمه زده شد، الان دارم درخواست می‌فرستم...');
   const phone = document.getElementById('phoneInput').value.trim();
   const errEl = document.getElementById('phoneErr');
   const btn = document.getElementById('phoneBtn');
@@ -200,12 +201,17 @@ async function requestOtp(){
   btn.textContent = 'در حال ارسال... (ممکنه تا ۵۰ ثانیه طول بکشه)';
   try{
     await api('/api/auth/otp/request', { method:'POST', body: JSON.stringify({ phone }) });
+    alert('موفق بود! کد ارسال شد');
     state.phone = phone;
     document.getElementById('otpSubtitle').textContent = 'کد ارسال‌شده به ' + phone + ' رو وارد کن';
     showScreen('s-otp');
-  }catch(e){ errEl.textContent = 'سرور جواب نداد: ' + e.message + ' — دوباره بزن'; }
+  }catch(e){
+    alert('خطا افتاد: ' + e.message);
+    errEl.textContent = 'سرور جواب نداد: ' + e.message + ' — دوباره بزن';
+  }
   finally{ btn.disabled = false; btn.textContent = 'دریافت کد تایید'; }
 }
+window.onerror = function(msg, src, line){ alert('خطای جاوااسکریپت: ' + msg + ' (خط ' + line + ')'); };
 
 async function verifyOtp(){
   const code = document.getElementById('codeInput').value.trim();
