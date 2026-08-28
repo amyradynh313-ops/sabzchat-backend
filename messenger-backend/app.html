@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سبزچت</title>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<style>
+@font-face {
+  font-family: 'Vazirmatn';
+  src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2') format('woff2');
+  font-weight: 400;
+}
+@font-face {
+  font-family: 'Vazirmatn';
+  src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2') format('woff2');
+  font-weight: 700;
+}
+@font-face {
+  font-family: 'Vazirmatn';
+  src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Black.woff2') format('woff2');
+  font-weight: 900;
+}
+:root{
+  --green-500:#16C784; --green-600:#0FA968; --green-700:#0B8F5F;
+  --coral:#FF8A5B; --coral-2:#FFC15E;
+  --bg:#F3FAF6; --card:#FFFFFF; --text:#0D1F17; --sub:#5C7A6C;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Vazirmatn',sans-serif; background:linear-gradient(180deg,#DFF3E9,#F3FAF6);
+  min-height:100vh; display:flex; align-items:center; justify-content:center; color:var(--text);
+}
+.phone{
+  width:390px; height:830px; max-height:96vh; background:var(--bg);
+  border-radius:44px; border:10px solid #0E1712; overflow:hidden; position:relative;
+  display:flex; flex-direction:column; box-shadow:0 30px 60px -20px rgba(11,45,30,.45);
+}
+.screen{ position:absolute; inset:0; display:none; flex-direction:column; background:var(--bg); }
+.screen.active{ display:flex; }
+
+/* ---- shared ---- */
+.top{ padding:40px 20px 10px; text-align:center; flex-shrink:0; }
+.top h1{ font-size:22px; font-weight:900; }
+.top p{ font-size:13px; color:var(--sub); margin-top:6px; }
+.field{ margin:16px 20px 0; }
+.field input{
+  width:100%; padding:14px 16px; border-radius:16px; border:none; background:var(--card);
+  font-family:inherit; font-size:15px; box-shadow:0 4px 14px rgba(20,60,40,.06); outline:none;
+}
+.btn{
+  margin:20px 20px 0; padding:14px; border:none; border-radius:16px; cursor:pointer;
+  background:linear-gradient(135deg,var(--green-500),var(--green-600)); color:#fff;
+  font-family:inherit; font-size:15px; font-weight:700; box-shadow:0 8px 20px rgba(22,199,132,.35);
+}
+.btn:active{ transform:scale(.98); }
+.err{ margin:10px 20px 0; color:#D64545; font-size:13px; text-align:center; min-height:16px; }
+.hint{ margin:14px 20px 0; font-size:12px; color:var(--sub); text-align:center; line-height:1.7; }
+
+/* ---- chat list ---- */
+.topbar{ padding:40px 18px 10px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.brand{ display:flex; align-items:center; gap:8px; font-weight:900; font-size:21px; }
+.brand .dot{ width:11px; height:11px; border-radius:50%; background:linear-gradient(135deg,var(--green-500),var(--coral-2)); }
+.icon-btn{ width:36px; height:36px; border-radius:12px; border:none; background:rgba(22,199,132,.1); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:18px;}
+.chat-list{ flex:1; overflow-y:auto; padding:6px 12px 20px; }
+.chat-item{ display:flex; align-items:center; gap:12px; padding:11px 8px; border-radius:18px; cursor:pointer; }
+.chat-item:active{ background:rgba(22,199,132,.08); }
+.avatar{ width:50px; height:50px; border-radius:50%; background:linear-gradient(135deg,#C9EFDD,#eee); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--green-700); flex-shrink:0; font-size:18px;}
+.chat-info{ flex:1; min-width:0; }
+.chat-row1{ display:flex; justify-content:space-between; }
+.chat-name{ font-weight:700; font-size:15px; }
+.chat-time{ font-size:11px; color:var(--sub); }
+.chat-preview{ font-size:13px; color:var(--sub); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:230px; }
+.empty-state{ text-align:center; color:var(--sub); font-size:14px; margin-top:60px; padding:0 30px; line-height:1.8; }
+.fab{
+  position:absolute; bottom:20px; left:20px; width:54px; height:54px; border-radius:50%; border:none;
+  background:linear-gradient(135deg,var(--green-500),var(--coral-2)); color:#fff; font-size:26px;
+  box-shadow:0 10px 25px rgba(22,199,132,.4); cursor:pointer; z-index:10;
+}
+
+/* ---- new chat search ---- */
+.search-box{ margin:14px 18px; }
+.search-box input{ width:100%; padding:12px 16px; border-radius:16px; border:none; background:var(--card); font-family:inherit; font-size:14px; outline:none;}
+.user-result{ display:flex; align-items:center; gap:12px; padding:10px 18px; cursor:pointer; }
+.user-result:active{ background:rgba(22,199,132,.08); }
+
+/* ---- chat screen ---- */
+.chat-header{ display:flex; align-items:center; gap:10px; padding:40px 14px 12px; flex-shrink:0; border-bottom:1px solid rgba(0,0,0,.04);}
+.back-btn{ background:none;border:none;cursor:pointer;font-size:20px;padding:6px;}
+.chat-header .avatar{ width:38px;height:38px;font-size:14px; }
+.chat-header-info .name{ font-weight:700; font-size:15px; }
+.chat-header-info .status{ font-size:11px; color:var(--green-600); min-height:14px;}
+.messages{ flex:1; overflow-y:auto; padding:16px 14px; display:flex; flex-direction:column; gap:6px; }
+.msg{ max-width:75%; display:flex; flex-direction:column; gap:3px; }
+.msg.in{ align-self:flex-end; align-items:flex-start; }
+.msg.out{ align-self:flex-start; align-items:flex-end; }
+.bubble{ padding:9px 14px; font-size:14px; line-height:1.6; border-radius:20px; }
+.msg.in .bubble{ background:var(--card); border-bottom-right-radius:6px; box-shadow:0 2px 8px rgba(20,60,40,.05);}
+.msg.out .bubble{ background:linear-gradient(135deg,var(--green-500),var(--green-600)); color:#fff; border-bottom-left-radius:6px;}
+.meta{ font-size:10px; color:var(--sub); padding:0 4px;}
+.input-bar{ display:flex; align-items:center; gap:8px; padding:10px 12px 22px; flex-shrink:0; background:var(--bg); border-top:1px solid rgba(0,0,0,.04);}
+.text-field{ flex:1; background:var(--card); border-radius:20px; padding:10px 16px; font-family:inherit; font-size:14px; border:none; outline:none;}
+.send-btn{ width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,var(--green-500),var(--coral-2)); color:#fff; font-size:16px;}
+.loading{ text-align:center; color:var(--sub); font-size:13px; margin-top:30px; }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- SCREEN 1: PHONE -->
+  <div class="screen active" id="s-phone">
+    <div class="top"><h1>🌱 سبزچت</h1><p>شماره موبایلتو وارد کن تا کد تایید بگیری</p></div>
+    <div class="field"><input id="phoneInput" type="tel" placeholder="09xxxxxxxxx" inputmode="numeric"></div>
+    <button class="btn" id="phoneBtn" onclick="requestOtp()">دریافت کد تایید</button>
+    <div class="err" id="phoneErr"></div>
+    <div class="hint">چون هنوز به سرویس پیامک وصل نشده، کد تایید تو لاگ سرور Render نمایش داده می‌شه (نه رو گوشیت). امیر می‌تونه از پنل Render → Logs کد رو ببینه.</div>
+  </div>
+
+  <!-- SCREEN 2: OTP -->
+  <div class="screen" id="s-otp">
+    <div class="top"><h1>کد تایید</h1><p id="otpSubtitle"></p></div>
+    <div class="field"><input id="codeInput" type="tel" placeholder="کد ۶ رقمی" inputmode="numeric" maxlength="6"></div>
+    <div class="field"><input id="nameInput" type="text" placeholder="اسمت (فقط بار اول)"></div>
+    <button class="btn" onclick="verifyOtp()">ورود</button>
+    <div class="err" id="otpErr"></div>
+    <button class="btn" style="background:none;box-shadow:none;color:var(--sub);font-weight:500;" onclick="showScreen('s-phone')">بازگشت</button>
+  </div>
+
+  <!-- SCREEN 3: CHAT LIST -->
+  <div class="screen" id="s-list">
+    <div class="topbar">
+      <div class="brand"><span class="dot"></span> سبزچت</div>
+      <button class="icon-btn" onclick="logout()">خروج</button>
+    </div>
+    <div class="chat-list" id="chatListEl">
+      <div class="loading">در حال بارگذاری...</div>
+    </div>
+    <button class="fab" onclick="openNewChat()">+</button>
+  </div>
+
+  <!-- SCREEN 4: NEW CHAT -->
+  <div class="screen" id="s-newchat">
+    <div class="chat-header">
+      <button class="back-btn" onclick="showScreen('s-list')">→</button>
+      <div class="chat-header-info"><div class="name">چت جدید</div></div>
+    </div>
+    <div class="search-box"><input id="searchInput" placeholder="اسم، یوزرنیم یا شماره موبایل..." oninput="searchUsers()"></div>
+    <div id="searchResults"></div>
+  </div>
+
+  <!-- SCREEN 5: CHAT -->
+  <div class="screen" id="s-chat">
+    <div class="chat-header">
+      <button class="back-btn" onclick="showScreen('s-list')">→</button>
+      <div class="avatar" id="chatAvatar"></div>
+      <div class="chat-header-info">
+        <div class="name" id="chatName"></div>
+        <div class="status" id="chatTyping"></div>
+      </div>
+    </div>
+    <div class="messages" id="messagesEl"></div>
+    <div class="input-bar">
+      <input class="text-field" id="msgInput" placeholder="پیام بنویس..." oninput="onTyping()">
+      <button class="send-btn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = 'https://sabzchat-backend.onrender.com';
+let state = { phone:'', token:null, user:null, socket:null, chats:[], activeChat:null, typingTimeout:null };
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+async function api(path, options={}){
+  const res = await fetch(API + path, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(state.token ? { 'Authorization': 'Bearer ' + state.token } : {}),
+      ...(options.headers || {})
+    }
+  });
+  const data = await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(data.error || 'خطای ناشناخته');
+  return data;
+}
+
+async function requestOtp(){
+  alert('دکمه زده شد، الان دارم درخواست می‌فرستم...');
+  const phone = document.getElementById('phoneInput').value.trim();
+  const errEl = document.getElementById('phoneErr');
+  const btn = document.getElementById('phoneBtn');
+  errEl.textContent = '';
+  if(!phone){ errEl.textContent = 'شماره رو وارد کن'; return; }
+  btn.disabled = true;
+  btn.textContent = 'در حال ارسال... (ممکنه تا ۵۰ ثانیه طول بکشه)';
+  try{
+    await api('/api/auth/otp/request', { method:'POST', body: JSON.stringify({ phone }) });
+    alert('موفق بود! کد ارسال شد');
+    state.phone = phone;
+    document.getElementById('otpSubtitle').textContent = 'کد ارسال‌شده به ' + phone + ' رو وارد کن';
+    showScreen('s-otp');
+  }catch(e){
+    alert('خطا افتاد: ' + e.message);
+    errEl.textContent = 'سرور جواب نداد: ' + e.message + ' — دوباره بزن';
+  }
+  finally{ btn.disabled = false; btn.textContent = 'دریافت کد تایید'; }
+}
+window.onerror = function(msg, src, line){ alert('خطای جاوااسکریپت: ' + msg + ' (خط ' + line + ')'); };
+
+async function verifyOtp(){
+  const code = document.getElementById('codeInput').value.trim();
+  const displayName = document.getElementById('nameInput').value.trim();
+  const errEl = document.getElementById('otpErr');
+  errEl.textContent = '';
+  try{
+    const data = await api('/api/auth/otp/verify', { method:'POST', body: JSON.stringify({ phone: state.phone, code, displayName }) });
+    state.token = data.token;
+    state.user = data.user;
+    connectSocket();
+    showScreen('s-list');
+    loadChats();
+  }catch(e){ errEl.textContent = e.message; }
+}
+
+function logout(){
+  if(state.socket) state.socket.disconnect();
+  state = { phone:'', token:null, user:null, socket:null, chats:[], activeChat:null };
+  showScreen('s-phone');
+}
+
+function connectSocket(){
+  state.socket = io(API, { auth: { token: state.token } });
+  state.socket.on('message:new', (msg)=>{
+    if(state.activeChat && msg.chatId === state.activeChat.id){ renderMessage(msg); scrollMessages(); }
+    loadChats();
+  });
+  state.socket.on('typing:start', ({chatId,userId})=>{
+    if(state.activeChat && chatId===state.activeChat.id && userId!==state.user.id){
+      document.getElementById('chatTyping').textContent = 'در حال نوشتن...';
+    }
+  });
+  state.socket.on('typing:stop', ({chatId})=>{
+    if(state.activeChat && chatId===state.activeChat.id){ document.getElementById('chatTyping').textContent=''; }
+  });
+}
+
+async function loadChats(){
+  try{
+    const chats = await api('/api/chats');
+    state.chats = chats;
+    renderChatList();
+  }catch(e){ console.error(e); }
+}
+
+function initials(name){ return (name||'?').trim().charAt(0); }
+
+function renderChatList(){
+  const el = document.getElementById('chatListEl');
+  if(state.chats.length === 0){
+    el.innerHTML = '<div class="empty-state">هنوز چتی نداری 🌱<br>روی دکمه‌ی + پایین بزن و یه چت جدید شروع کن</div>';
+    return;
+  }
+  el.innerHTML = state.chats.map(c=>{
+    const other = c.type==='DIRECT' ? (c.participants.find(p=>p.id!==state.user.id) || c.participants[0]) : null;
+    const title = c.type==='GROUP' ? (c.title||'گروه') : (other ? other.displayName : 'کاربر');
+    const preview = c.lastMessage ? (c.lastMessage.content || 'رسانه') : 'شروع مکالمه...';
+    return `<div class="chat-item" onclick='openChat(${JSON.stringify(c).replace(/'/g,"&#39;")})'>
+      <div class="avatar">${initials(title)}</div>
+      <div class="chat-info">
+        <div class="chat-row1"><div class="chat-name">${title}</div></div>
+        <div class="chat-preview">${preview}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openNewChat(){
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchResults').innerHTML = '';
+  showScreen('s-newchat');
+}
+
+let searchDebounce;
+function searchUsers(){
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(async ()=>{
+    const q = document.getElementById('searchInput').value.trim();
+    const resultsEl = document.getElementById('searchResults');
+    if(!q){ resultsEl.innerHTML=''; return; }
+    try{
+      const users = await api('/api/users/search?q=' + encodeURIComponent(q));
+      resultsEl.innerHTML = users.map(u=>`<div class="user-result" onclick='startChat("${u.id}")'>
+        <div class="avatar">${initials(u.displayName)}</div>
+        <div>${u.displayName}</div>
+      </div>`).join('') || '<div class="empty-state">کسی پیدا نشد</div>';
+    }catch(e){ resultsEl.innerHTML = '<div class="empty-state">خطا: '+e.message+'</div>'; }
+  }, 400);
+}
+
+async function startChat(targetUserId){
+  try{
+    const chat = await api('/api/chats/direct', { method:'POST', body: JSON.stringify({ targetUserId }) });
+    await loadChats();
+    const full = state.chats.find(c=>c.id===chat.id) || chat;
+    openChat(full);
+  }catch(e){ alert('خطا: ' + e.message); }
+}
+
+async function openChat(chat){
+  state.activeChat = chat;
+  const other = chat.type==='DIRECT' ? (chat.participants ? chat.participants.find(p=>p.id!==state.user.id) : null) : null;
+  const title = chat.type==='GROUP' ? (chat.title||'گروه') : (other ? other.displayName : 'چت');
+  document.getElementById('chatName').textContent = title;
+  document.getElementById('chatAvatar').textContent = initials(title);
+  document.getElementById('chatTyping').textContent = '';
+  document.getElementById('messagesEl').innerHTML = '<div class="loading">در حال بارگذاری پیام‌ها...</div>';
+  showScreen('s-chat');
+  try{
+    const messages = await api('/api/messages/' + chat.id);
+    document.getElementById('messagesEl').innerHTML = '';
+    messages.forEach(renderMessage);
+    scrollMessages();
+  }catch(e){ document.getElementById('messagesEl').innerHTML = '<div class="empty-state">خطا در بارگذاری پیام‌ها</div>'; }
+}
+
+function renderMessage(msg){
+  const mine = msg.senderId === state.user.id || msg.sender?.id === state.user.id;
+  const el = document.createElement('div');
+  el.className = 'msg ' + (mine ? 'out' : 'in');
+  const time = new Date(msg.createdAt).toLocaleTimeString('fa-IR', {hour:'2-digit', minute:'2-digit'});
+  el.innerHTML = `<div class="bubble">${msg.content||''}</div><div class="meta">${time}</div>`;
+  document.getElementById('messagesEl').appendChild(el);
+}
+
+function scrollMessages(){
+  const el = document.getElementById('messagesEl');
+  el.scrollTop = el.scrollHeight;
+}
+
+function sendMessage(){
+  const input = document.getElementById('msgInput');
+  const content = input.value.trim();
+  if(!content || !state.activeChat) return;
+  state.socket.emit('message:send', { chatId: state.activeChat.id, content, type:'TEXT' }, (res)=>{
+    if(!res.ok) alert('پیام ارسال نشد: ' + res.error);
+  });
+  input.value = '';
+}
+
+document.getElementById('msgInput')?.addEventListener('keypress', (e)=>{ if(e.key==='Enter') sendMessage(); });
+
+function onTyping(){
+  if(!state.activeChat) return;
+  state.socket.emit('typing:start', { chatId: state.activeChat.id });
+  clearTimeout(state.typingTimeout);
+  state.typingTimeout = setTimeout(()=>{
+    state.socket.emit('typing:stop', { chatId: state.activeChat.id });
+  }, 1500);
+}
+</script>
+</body>
+</html>
