@@ -111,7 +111,7 @@ body{
   <div class="screen active" id="s-phone">
     <div class="top"><h1>🌱 سبزچت</h1><p>شماره موبایلتو وارد کن تا کد تایید بگیری</p></div>
     <div class="field"><input id="phoneInput" type="tel" placeholder="09xxxxxxxxx" inputmode="numeric"></div>
-    <button class="btn" onclick="requestOtp()">دریافت کد تایید</button>
+    <button class="btn" id="phoneBtn" onclick="requestOtp()">دریافت کد تایید</button>
     <div class="err" id="phoneErr"></div>
     <div class="hint">چون هنوز به سرویس پیامک وصل نشده، کد تایید تو لاگ سرور Render نمایش داده می‌شه (نه رو گوشیت). امیر می‌تونه از پنل Render → Logs کد رو ببینه.</div>
   </div>
@@ -193,14 +193,18 @@ async function api(path, options={}){
 async function requestOtp(){
   const phone = document.getElementById('phoneInput').value.trim();
   const errEl = document.getElementById('phoneErr');
+  const btn = document.getElementById('phoneBtn');
   errEl.textContent = '';
   if(!phone){ errEl.textContent = 'شماره رو وارد کن'; return; }
+  btn.disabled = true;
+  btn.textContent = 'در حال ارسال... (ممکنه تا ۵۰ ثانیه طول بکشه)';
   try{
     await api('/api/auth/otp/request', { method:'POST', body: JSON.stringify({ phone }) });
     state.phone = phone;
     document.getElementById('otpSubtitle').textContent = 'کد ارسال‌شده به ' + phone + ' رو وارد کن';
     showScreen('s-otp');
-  }catch(e){ errEl.textContent = 'سرور جواب نداد (شاید تازه داره بیدار می‌شه، ۱۰ ثانیه صبر کن دوباره بزن): ' + e.message; }
+  }catch(e){ errEl.textContent = 'سرور جواب نداد: ' + e.message + ' — دوباره بزن'; }
+  finally{ btn.disabled = false; btn.textContent = 'دریافت کد تایید'; }
 }
 
 async function verifyOtp(){
