@@ -14,6 +14,7 @@ const usersRoutes = require('./routes/users.routes');
 const chatsRoutes = require('./routes/chats.routes');
 const messagesRoutes = require('./routes/messages.routes');
 const storiesRoutes = require('./routes/stories.routes');
+const telegramRoutes = require('./routes/telegram.routes');
 
 const app = express();
 const server = http.createServer(app);
@@ -36,6 +37,7 @@ app.use('/api/users', usersRoutes);
 app.use('/api/chats', chatsRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/stories', storiesRoutes);
+app.use('/api/telegram', telegramRoutes);
 
 initSockets(io);
 
