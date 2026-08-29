@@ -1,5 +1,6 @@
 const prisma = require('../config/db');
 const { signToken } = require('../utils/jwt');
+const { normalizePhone } = require('../routes/telegram.routes');
 
 // در حافظه نگه‌داری کدهای تایید (برای پروداکشن باید Redis با TTL استفاده بشه)
 const otpStore = new Map(); // phone -> { code, expiresAt }
@@ -8,14 +9,29 @@ function generateOtp() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// کد تایید رو از طریق بات تلگرام می‌فرسته (چون سرویس پیامک ایرانی هنوز وصل نشده)
+// کد تایید رو از طریق بات تلگرام می‌فرسته — اگه کاربر شماره‌شو قبلاً به بات ثبت کرده باشه
+// مستقیم برای خودش می‌فرسته، وگرنه برای چت پیش‌فرض (صاحب پروژه)
 async function sendOtpViaTelegram(phone, code) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
-  if (!token || !chatId) {
-    console.log(`[OTP] ${phone} -> ${code}`); // fallback: لاگ ساده اگه بات تنظیم نشده باشه
+  const fallbackChatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token) {
+    console.log(`[OTP] ${phone} -> ${code}`);
     return;
   }
+
+  let chatId = fallbackChatId;
+  try {
+    const link = await prisma.telegramLink.findUnique({ where: { phone: normalizePhone(phone) } });
+    if (link) chatId = link.chatId;
+  } catch (err) {
+    console.error('خطا در پیدا کردن چت تلگرام کاربر:', err.message);
+  }
+
+  if (!chatId) {
+    console.log(`[OTP] ${phone} -> ${code}`);
+    return;
+  }
+
   const text = `🌱 سبزچت\nکد تایید برای ${phone}:\n${code}`;
   try {
     await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -64,4 +80,4 @@ async function verifyOtp(req, res) {
 }
 
 module.exports = { requestOtp, verifyOtp };
-
+    
