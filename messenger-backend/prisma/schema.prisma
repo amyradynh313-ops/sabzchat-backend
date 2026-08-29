@@ -1,4 +1,142 @@
-// ---------- STORIES ----------
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  phone         String   @unique
+  username      String?  @unique
+  displayName   String
+  bio           String?
+  avatarUrl     String?
+  isOnline      Boolean  @default(false)
+  lastSeenAt    DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  participants  ChatParticipant[]
+  messages      Message[]
+  reactions     MessageReaction[]
+  stories       Story[]
+  storyViews    StoryView[]
+  contactsOf    Contact[]         @relation("ContactOwner")
+  contactedBy   Contact[]         @relation("ContactTarget")
+  callsStarted  Call[]            @relation("CallInitiator")
+  callParticipants CallParticipant[]
+  devices       Device[]
+}
+
+model Device {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  pushToken String
+  platform  String
+  createdAt DateTime @default(now())
+}
+
+model Contact {
+  id         String @id @default(uuid())
+  ownerId    String
+  owner      User   @relation("ContactOwner", fields: [ownerId], references: [id])
+  targetId   String
+  target     User   @relation("ContactTarget", fields: [targetId], references: [id])
+  nickname   String?
+  createdAt  DateTime @default(now())
+
+  @@unique([ownerId, targetId])
+}
+
+model Chat {
+  id           String   @id @default(uuid())
+  type         ChatType @default(DIRECT)
+  title        String?
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+
+  participants ChatParticipant[]
+  messages     Message[]
+  calls        Call[]
+}
+
+enum ChatType {
+  DIRECT
+  GROUP
+}
+
+model ChatParticipant {
+  id          String   @id @default(uuid())
+  chatId      String
+  chat        Chat     @relation(fields: [chatId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  role        ParticipantRole @default(MEMBER)
+  isPinned    Boolean  @default(false)
+  isMuted     Boolean  @default(false)
+  lastReadAt  DateTime @default(now())
+  joinedAt    DateTime @default(now())
+
+  @@unique([chatId, userId])
+}
+
+enum ParticipantRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model Message {
+  id          String      @id @default(uuid())
+  chatId      String
+  chat        Chat        @relation(fields: [chatId], references: [id])
+  senderId    String
+  sender      User        @relation(fields: [senderId], references: [id])
+  type        MessageType @default(TEXT)
+  content     String?
+  mediaUrl    String?
+  replyToId   String?
+  replyTo     Message?    @relation("ReplyTo", fields: [replyToId], references: [id])
+  replies     Message[]   @relation("ReplyTo")
+  status      MessageStatus @default(SENT)
+  createdAt   DateTime    @default(now())
+  editedAt    DateTime?
+  deletedAt   DateTime?
+
+  reactions   MessageReaction[]
+
+  @@index([chatId, createdAt])
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  FILE
+  STICKER
+  SYSTEM
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+}
+
+model MessageReaction {
+  id        String  @id @default(uuid())
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id])
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  emoji     String
+
+  @@unique([messageId, userId, emoji])
+}
 
 model Story {
   id        String   @id @default(uuid())
@@ -8,7 +146,7 @@ model Story {
   type      StoryType @default(IMAGE)
   caption   String?
   createdAt DateTime @default(now())
-  expiresAt DateTime // createdAt + 24h, enforced by a cleanup job
+  expiresAt DateTime
 
   views     StoryView[]
 }
@@ -29,8 +167,6 @@ model StoryView {
 
   @@unique([storyId, viewerId])
 }
-
-// ---------- CALLS ----------
 
 model Call {
   id           String     @id @default(uuid())
@@ -69,7 +205,6 @@ model CallParticipant {
   leftAt   DateTime?
 }
 
-// نگه‌داری اینکه هر شماره موبایل به کدوم چت تلگرامی وصله (برای ارسال کد تایید شخصی‌سازی‌شده)
 model TelegramLink {
   phone     String   @id
   chatId    String
