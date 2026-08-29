@@ -22,7 +22,7 @@ const io = new Server(server, {
   cors: { origin: process.env.CORS_ORIGIN || '*' },
 });
 
-app.use(helmet());
+app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 app.use(express.json());
 app.use(morgan('dev'));
