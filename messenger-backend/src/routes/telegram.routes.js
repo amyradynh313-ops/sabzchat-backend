@@ -2,11 +2,14 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../config/db');
 
-// شماره رو یکدست می‌کنه (چه با +98 بیاد، چه با 0، چه فقط رقم خالی) تا همیشه با هم مچ بشن
+// شماره رو به یه فرمت یکدست (کد کشور + شماره، بدون + یا صفر ابتدایی) تبدیل می‌کنه
+// تا فرقی نکنه از سایت با فرمت‌های مختلف بیاد یا از تلگرام، همیشه با هم مچ بشن
 function normalizePhone(raw) {
   let p = raw.replace(/[^\d]/g, ''); // فقط رقم‌ها
-  if (p.startsWith('98') && p.length === 12) p = '0' + p.slice(2);
-  if (p.length === 10 && p.startsWith('9')) p = '0' + p;
+  // فرمت‌های رایج ایرانی رو به کد کشور ۹۸ تبدیل می‌کنه
+  if (p.startsWith('0') && p.length === 11) p = '98' + p.slice(1); // 09xxxxxxxxx
+  else if (p.length === 10 && p.startsWith('9')) p = '98' + p; // 9xxxxxxxxx
+  // برای بقیه‌ی شماره‌های بین‌المللی (که از قبل با کد کشور اومدن) دست‌نخورده می‌مونه
   return p;
 }
 
