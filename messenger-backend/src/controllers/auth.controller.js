@@ -58,6 +58,15 @@ async function requestOtp(req, res) {
   res.json({ message: 'کد تایید ارسال شد' });
 }
 
+// چت سراسری (Global) رو پیدا می‌کنه، یا اگه هنوز وجود نداره می‌سازتش
+async function getOrCreateGlobalChat() {
+  let chat = await prisma.chat.findFirst({ where: { type: 'GROUP', title: '🌍 چت سراسری' } });
+  if (!chat) {
+    chat = await prisma.chat.create({ data: { type: 'GROUP', title: '🌍 چت سراسری' } });
+  }
+  return chat;
+}
+
 // مرحله ۲: کاربر کد رو تایید می‌کنه، اگه کاربر جدیده ساخته می‌شه، بعد توکن صادر می‌شه
 async function verifyOtp(req, res) {
   const { phone, code, displayName } = req.body;
@@ -75,9 +84,20 @@ async function verifyOtp(req, res) {
     });
   }
 
+  // هر کاربری (جدید یا قدیمی) رو مطمئن می‌شیم عضو چت سراسریه
+  try {
+    const globalChat = await getOrCreateGlobalChat();
+    await prisma.chatParticipant.upsert({
+      where: { chatId_userId: { chatId: globalChat.id, userId: user.id } },
+      update: {},
+      create: { chatId: globalChat.id, userId: user.id },
+    });
+  } catch (err) {
+    console.error('خطا در عضویت چت سراسری:', err.message);
+  }
+
   const token = signToken(user.id);
   res.json({ token, user });
 }
 
 module.exports = { requestOtp, verifyOtp };
-    
