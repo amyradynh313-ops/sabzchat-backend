@@ -24,24 +24,31 @@
 :root{
   --green-500:#16C784; --green-600:#0FA968; --green-700:#0B8F5F;
   --coral:#FF8A5B; --coral-2:#FFC15E;
+  --violet:#8B6BF2; --violet-2:#B794F6;
+  --pink:#FF6FA0;
   --bg:#F3FAF6; --card:#FFFFFF; --text:#0D1F17; --sub:#5C7A6C;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{
-  font-family:'Vazirmatn',sans-serif; background:linear-gradient(180deg,#DFF3E9,#F3FAF6);
-  min-height:100vh; display:flex; align-items:center; justify-content:center; color:var(--text);
+  font-family:'Vazirmatn',sans-serif; color:var(--text);
+  min-height:100vh; overflow:hidden;
 }
 .phone{
-  width:390px; height:830px; max-height:96vh; background:var(--bg);
-  border-radius:44px; border:10px solid #0E1712; overflow:hidden; position:relative;
-  display:flex; flex-direction:column; box-shadow:0 30px 60px -20px rgba(11,45,30,.45);
+  width:100vw; height:100vh;
+  background:
+    radial-gradient(circle at 8% 10%, rgba(139,107,242,0.14) 0%, transparent 40%),
+    radial-gradient(circle at 95% 15%, rgba(255,138,91,0.16) 0%, transparent 38%),
+    radial-gradient(circle at 15% 90%, rgba(255,111,160,0.12) 0%, transparent 42%),
+    linear-gradient(160deg, #EAFBF3 0%, #F3FAF6 45%, #FDF6EC 100%);
+  overflow:hidden; position:relative;
+  display:flex; flex-direction:column;
 }
 .screen{ position:absolute; inset:0; display:none; flex-direction:column; background:var(--bg); }
 .screen.active{ display:flex; }
 
 /* ---- shared ---- */
 .top{ padding:40px 20px 10px; text-align:center; flex-shrink:0; }
-.top h1{ font-size:22px; font-weight:900; }
+.top h1{ font-size:23px; font-weight:900; letter-spacing:-.01em; }
 .top p{ font-size:13px; color:var(--sub); margin-top:6px; }
 .field{ margin:16px 20px 0; }
 .field input{
@@ -59,13 +66,19 @@ body{
 
 /* ---- chat list ---- */
 .topbar{ padding:40px 18px 10px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
-.brand{ display:flex; align-items:center; gap:8px; font-weight:900; font-size:21px; }
-.brand .dot{ width:11px; height:11px; border-radius:50%; background:linear-gradient(135deg,var(--green-500),var(--coral-2)); }
+.brand{ display:flex; align-items:center; gap:8px; font-weight:900; font-size:22px; letter-spacing:-.02em;
+  background:linear-gradient(120deg,var(--green-600),var(--violet)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.brand .dot{ width:11px; height:11px; border-radius:50%; background:linear-gradient(135deg,var(--green-500),var(--pink)); }
 .icon-btn{ width:36px; height:36px; border-radius:12px; border:none; background:rgba(22,199,132,.1); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:18px;}
 .chat-list{ flex:1; overflow-y:auto; padding:6px 12px 20px; }
 .chat-item{ display:flex; align-items:center; gap:12px; padding:11px 8px; border-radius:18px; cursor:pointer; }
 .chat-item:active{ background:rgba(22,199,132,.08); }
-.avatar{ width:50px; height:50px; border-radius:50%; background:linear-gradient(135deg,#C9EFDD,#eee); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--green-700); flex-shrink:0; font-size:18px;}
+.avatar{ width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; flex-shrink:0; font-size:18px; box-shadow:0 4px 10px rgba(20,60,40,.1);}
+.avatar.g0{ background:linear-gradient(135deg,var(--green-500),var(--green-600)); }
+.avatar.g1{ background:linear-gradient(135deg,var(--violet),var(--violet-2)); }
+.avatar.g2{ background:linear-gradient(135deg,var(--coral),var(--coral-2)); }
+.avatar.g3{ background:linear-gradient(135deg,var(--pink),var(--coral)); }
+.avatar.g4{ background:linear-gradient(135deg,#2AABEE,var(--violet-2)); }
 .chat-info{ flex:1; min-width:0; }
 .chat-row1{ display:flex; justify-content:space-between; }
 .chat-name{ font-weight:700; font-size:15px; }
@@ -102,38 +115,98 @@ body{
 .text-field{ flex:1; background:var(--card); border-radius:20px; padding:10px 16px; font-family:inherit; font-size:14px; border:none; outline:none;}
 .send-btn{ width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,var(--green-500),var(--coral-2)); color:#fff; font-size:16px;}
 .loading{ text-align:center; color:var(--sub); font-size:13px; margin-top:30px; }
+
+/* ---- onboarding ---- */
+.lang-toggle{
+  position:absolute; top:16px; left:16px; z-index:20; background:var(--card); border:none;
+  border-radius:12px; padding:6px 12px; font-family:inherit; font-size:12px; font-weight:700;
+  cursor:pointer; box-shadow:0 4px 10px rgba(20,60,40,.08); color:var(--green-700);
+}
+.onb-wrap{ flex:1; overflow-y:auto; padding:60px 24px 20px; text-align:center; }
+.onb-emoji{ font-size:48px; margin-bottom:6px; }
+.onb-wrap h1{ font-size:22px; font-weight:900; margin-bottom:10px; }
+.onb-steps{ text-align:right; background:var(--card); border-radius:18px; padding:16px 18px; margin-top:16px; box-shadow:0 4px 14px rgba(20,60,40,.06); }
+[dir="ltr"] .onb-steps{ text-align:left; }
+.onb-step{ display:flex; gap:10px; align-items:flex-start; padding:8px 0; font-size:13.5px; line-height:1.7; }
+.onb-step b{ color:var(--green-700); }
+.tg-btn{
+  display:block; margin:18px auto 0; padding:13px 22px; border-radius:16px; border:none;
+  background:linear-gradient(135deg,#2AABEE,#229ED9); color:#fff; font-family:inherit; font-weight:700;
+  font-size:14px; text-decoration:none; box-shadow:0 8px 20px rgba(42,171,238,.35); cursor:pointer;
+}
+
+/* ---- settings ---- */
+.settings-list{ flex:1; overflow-y:auto; padding:10px 18px 20px; }
+.settings-avatar{
+  width:80px; height:80px; border-radius:50%; margin:10px auto 16px; display:flex; align-items:center;
+  justify-content:center; font-size:30px; font-weight:900; color:#fff;
+  background:linear-gradient(135deg,var(--green-500),var(--coral-2));
+}
+.settings-label{ font-size:12px; color:var(--sub); margin:14px 4px 6px; font-weight:700; }
+.settings-input{
+  width:100%; padding:13px 16px; border-radius:14px; border:none; background:var(--card);
+  font-family:inherit; font-size:14px; box-shadow:0 3px 10px rgba(20,60,40,.05); outline:none;
+}
+.settings-input[disabled]{ color:var(--sub); }
+.lang-row{ display:flex; gap:8px; margin-top:6px; }
+.lang-opt{
+  flex:1; padding:10px; border-radius:12px; border:2px solid transparent; background:var(--card);
+  font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; color:var(--sub);
+}
+.lang-opt.active{ border-color:var(--green-500); color:var(--green-700); }
 </style>
 </head>
 <body>
 <div class="phone">
+  <button class="lang-toggle" onclick="toggleLang()" id="langToggleBtn">EN</button>
+
+  <!-- SCREEN 0: ONBOARDING -->
+  <div class="screen active" id="s-onboarding">
+    <div class="onb-wrap">
+      <div class="onb-emoji">🌱</div>
+      <h1 data-i18n="onb_title">به سبزچت خوش اومدی</h1>
+      <p class="hint" data-i18n="onb_sub" style="margin:0;">برای دریافت کد ورود، اول باید یه‌بار با بات تلگرام ما آشنا بشی.</p>
+      <div class="onb-steps">
+        <div class="onb-step"><b>۱.</b> <span data-i18n="onb_step1">دکمه‌ی پایین رو بزن تا بات تلگرام سبزچت باز بشه</span></div>
+        <div class="onb-step"><b>۲.</b> <span data-i18n="onb_step2">تو بات، دکمه‌ی Start رو بزن</span></div>
+        <div class="onb-step"><b>۳.</b> <span data-i18n="onb_step3">دکمه‌ی «اشتراک‌گذاری شماره» رو بزن</span></div>
+        <div class="onb-step"><b>۴.</b> <span data-i18n="onb_step4">برگرد اینجا و همون شماره رو وارد کن</span></div>
+      </div>
+      <a class="tg-btn" href="https://t.me/Sabz_chat_bot" target="_blank" data-i18n="onb_open_bot">📲 باز کردن بات تلگرام</a>
+      <button class="btn" onclick="showScreen('s-phone')" data-i18n="onb_continue">ادامه</button>
+    </div>
+  </div>
 
   <!-- SCREEN 1: PHONE -->
-  <div class="screen active" id="s-phone">
-    <div class="top"><h1>🌱 سبزچت</h1><p>شماره موبایلتو وارد کن تا کد تایید بگیری</p></div>
-    <div class="field"><input id="phoneInput" type="tel" placeholder="09xxxxxxxxx" inputmode="numeric"></div>
-    <button class="btn" id="phoneBtn" onclick="requestOtp()">دریافت کد تایید</button>
+  <div class="screen" id="s-phone">
+    <div class="top"><h1>🌱 سبزچت</h1><p data-i18n="phone_sub">شماره موبایلتو وارد کن تا کد تایید بگیری</p></div>
+    <div class="field"><input id="phoneInput" type="tel" placeholder="09xxxxxxxxx یا +1..." inputmode="tel"></div>
+    <button class="btn" id="phoneBtn" onclick="requestOtp()" data-i18n="phone_btn">دریافت کد تایید</button>
     <div class="err" id="phoneErr"></div>
-    <div class="hint">چون هنوز به سرویس پیامک وصل نشده، کد تایید تو لاگ سرور Render نمایش داده می‌شه (نه رو گوشیت). امیر می‌تونه از پنل Render → Logs کد رو ببینه.</div>
+    <div class="hint" data-i18n="phone_hint">کد تایید مستقیم تو همون بات تلگرامی که ثبت کردی برات میاد.</div>
   </div>
 
   <!-- SCREEN 2: OTP -->
   <div class="screen" id="s-otp">
-    <div class="top"><h1>کد تایید</h1><p id="otpSubtitle"></p></div>
-    <div class="field"><input id="codeInput" type="tel" placeholder="کد ۶ رقمی" inputmode="numeric" maxlength="6"></div>
-    <div class="field"><input id="nameInput" type="text" placeholder="اسمت (فقط بار اول)"></div>
-    <button class="btn" onclick="verifyOtp()">ورود</button>
+    <div class="top"><h1 data-i18n="otp_title">کد تایید</h1><p id="otpSubtitle"></p></div>
+    <div class="field"><input id="codeInput" type="tel" placeholder="کد ۶ رقمی" inputmode="numeric" maxlength="6" data-i18n-placeholder="otp_code_ph"></div>
+    <div class="field"><input id="nameInput" type="text" placeholder="اسمت (فقط بار اول)" data-i18n-placeholder="otp_name_ph"></div>
+    <button class="btn" onclick="verifyOtp()" data-i18n="otp_login_btn">ورود</button>
     <div class="err" id="otpErr"></div>
-    <button class="btn" style="background:none;box-shadow:none;color:var(--sub);font-weight:500;" onclick="showScreen('s-phone')">بازگشت</button>
+    <button class="btn" style="background:none;box-shadow:none;color:var(--sub);font-weight:500;" onclick="showScreen('s-phone')" data-i18n="back_btn">بازگشت</button>
   </div>
 
   <!-- SCREEN 3: CHAT LIST -->
   <div class="screen" id="s-list">
     <div class="topbar">
       <div class="brand"><span class="dot"></span> سبزچت</div>
-      <button class="icon-btn" onclick="logout()">خروج</button>
+      <div style="display:flex;gap:8px;">
+        <button class="icon-btn" onclick="openSettings()">⚙️</button>
+        <button class="icon-btn" onclick="logout()" data-i18n="logout_btn">خروج</button>
+      </div>
     </div>
     <div class="chat-list" id="chatListEl">
-      <div class="loading">در حال بارگذاری...</div>
+      <div class="loading" data-i18n="loading_txt">در حال بارگذاری...</div>
     </div>
     <button class="fab" onclick="openNewChat()">+</button>
   </div>
@@ -142,9 +215,9 @@ body{
   <div class="screen" id="s-newchat">
     <div class="chat-header">
       <button class="back-btn" onclick="showScreen('s-list')">→</button>
-      <div class="chat-header-info"><div class="name">چت جدید</div></div>
+      <div class="chat-header-info"><div class="name" data-i18n="new_chat_title">چت جدید</div></div>
     </div>
-    <div class="search-box"><input id="searchInput" placeholder="اسم، یوزرنیم یا شماره موبایل..." oninput="searchUsers()"></div>
+    <div class="search-box"><input id="searchInput" placeholder="اسم، یوزرنیم یا شماره موبایل..." oninput="searchUsers()" data-i18n-placeholder="search_ph"></div>
     <div id="searchResults"></div>
   </div>
 
@@ -160,8 +233,34 @@ body{
     </div>
     <div class="messages" id="messagesEl"></div>
     <div class="input-bar">
-      <input class="text-field" id="msgInput" placeholder="پیام بنویس..." oninput="onTyping()">
+      <input class="text-field" id="msgInput" placeholder="پیام بنویس..." oninput="onTyping()" data-i18n-placeholder="msg_ph">
       <button class="send-btn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 6: SETTINGS -->
+  <div class="screen" id="s-settings">
+    <div class="chat-header">
+      <button class="back-btn" onclick="showScreen('s-list')">→</button>
+      <div class="chat-header-info"><div class="name" data-i18n="settings_title">تنظیمات حساب</div></div>
+    </div>
+    <div class="settings-list">
+      <div class="settings-avatar" id="settingsAvatar"></div>
+
+      <div class="settings-label" data-i18n="settings_name">نام نمایشی</div>
+      <input class="settings-input" id="settingsName" placeholder="اسمت">
+
+      <div class="settings-label" data-i18n="settings_phone">شماره موبایل</div>
+      <input class="settings-input" id="settingsPhone" disabled>
+
+      <div class="settings-label" data-i18n="settings_lang">زبان</div>
+      <div class="lang-row">
+        <button class="lang-opt" id="langOptFa" onclick="setLang('fa')">فارسی</button>
+        <button class="lang-opt" id="langOptEn" onclick="setLang('en')">English</button>
+      </div>
+
+      <button class="btn" onclick="saveSettings()" data-i18n="settings_save">ذخیره تغییرات</button>
+      <div class="err" id="settingsErr"></div>
     </div>
   </div>
 
@@ -169,7 +268,128 @@ body{
 
 <script>
 const API = 'https://sabzchat-backend.onrender.com';
-let state = { phone:'', token:null, user:null, socket:null, chats:[], activeChat:null, typingTimeout:null };
+
+const translations = {
+  fa: {
+    onb_title: 'به سبزچت خوش اومدی',
+    onb_sub: 'برای دریافت کد ورود، اول باید یه‌بار با بات تلگرام ما آشنا بشی.',
+    onb_step1: 'دکمه‌ی پایین رو بزن تا بات تلگرام سبزچت باز بشه',
+    onb_step2: 'تو بات، دکمه‌ی Start رو بزن',
+    onb_step3: 'دکمه‌ی «اشتراک‌گذاری شماره» رو بزن',
+    onb_step4: 'برگرد اینجا و همون شماره رو وارد کن',
+    onb_open_bot: '📲 باز کردن بات تلگرام',
+    onb_continue: 'ادامه',
+    phone_sub: 'شماره موبایلتو وارد کن تا کد تایید بگیری',
+    phone_btn: 'دریافت کد تایید',
+    phone_hint: 'کد تایید مستقیم تو همون بات تلگرامی که ثبت کردی برات میاد.',
+    settings_title: 'تنظیمات حساب',
+    settings_name: 'نام نمایشی',
+    settings_phone: 'شماره موبایل',
+    settings_lang: 'زبان',
+    settings_save: 'ذخیره تغییرات',
+    otp_title: 'کد تایید',
+    otp_code_ph: 'کد ۶ رقمی',
+    otp_name_ph: 'اسمت (فقط بار اول)',
+    otp_login_btn: 'ورود',
+    back_btn: 'بازگشت',
+    logout_btn: 'خروج',
+    loading_txt: 'در حال بارگذاری...',
+    new_chat_title: 'چت جدید',
+    search_ph: 'اسم، یوزرنیم یا شماره موبایل...',
+    msg_ph: 'پیام بنویس...',
+    empty_chats: 'هنوز چتی نداری 🌱<br>روی دکمه‌ی + پایین بزن و یه چت جدید شروع کن',
+    start_convo: 'شروع مکالمه...',
+    media_label: 'رسانه',
+    group_label: 'گروه',
+    user_label: 'کاربر',
+    chat_label: 'چت',
+    typing_label: 'در حال نوشتن...',
+    no_results: 'کسی پیدا نشد',
+    loading_messages: 'در حال بارگذاری پیام‌ها...',
+    messages_error: 'خطا در بارگذاری پیام‌ها',
+    phone_required: 'شماره رو وارد کن',
+    sending_txt: 'در حال ارسال... (ممکنه تا ۵۰ ثانیه طول بکشه)',
+    name_required: 'اسم نمی‌تونه خالی باشه',
+  },
+  en: {
+    onb_title: 'Welcome to SabzChat',
+    onb_sub: 'To get your login code, you first need to link with our Telegram bot once.',
+    onb_step1: 'Tap the button below to open the SabzChat Telegram bot',
+    onb_step2: 'In the bot, tap Start',
+    onb_step3: 'Tap the "Share my number" button',
+    onb_step4: 'Come back here and enter that same number',
+    onb_open_bot: '📲 Open Telegram bot',
+    onb_continue: 'Continue',
+    phone_sub: 'Enter your phone number to get a verification code',
+    phone_btn: 'Get verification code',
+    phone_hint: 'Your code will arrive directly in the Telegram bot you registered with.',
+    settings_title: 'Account settings',
+    settings_name: 'Display name',
+    settings_phone: 'Phone number',
+    settings_lang: 'Language',
+    settings_save: 'Save changes',
+    otp_title: 'Verification code',
+    otp_code_ph: '6-digit code',
+    otp_name_ph: 'Your name (first time only)',
+    otp_login_btn: 'Log in',
+    back_btn: 'Back',
+    logout_btn: 'Logout',
+    loading_txt: 'Loading...',
+    new_chat_title: 'New chat',
+    search_ph: 'Name, username or phone number...',
+    msg_ph: 'Type a message...',
+    empty_chats: 'No chats yet 🌱<br>Tap the + button below to start a new chat',
+    start_convo: 'Start the conversation...',
+    media_label: 'Media',
+    group_label: 'Group',
+    user_label: 'User',
+    chat_label: 'Chat',
+    typing_label: 'typing...',
+    no_results: 'No results found',
+    loading_messages: 'Loading messages...',
+    messages_error: 'Failed to load messages',
+    phone_required: 'Enter your phone number',
+    sending_txt: 'Sending... (may take up to 50 seconds)',
+    name_required: 'Name cannot be empty',
+  },
+};
+
+function t(key){
+  return (translations[state.lang] && translations[state.lang][key]) || translations.fa[key] || key;
+}
+
+function applyLang(){
+  const dict = translations[state.lang];
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    if(dict[key]) el.innerHTML = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    const key = el.getAttribute('data-i18n-placeholder');
+    if(dict[key]) el.placeholder = dict[key];
+  });
+  document.documentElement.setAttribute('dir', state.lang === 'en' ? 'ltr' : 'rtl');
+  document.documentElement.setAttribute('lang', state.lang);
+  document.getElementById('langToggleBtn').textContent = state.lang === 'fa' ? 'EN' : 'FA';
+  document.getElementById('langOptFa')?.classList.toggle('active', state.lang==='fa');
+  document.getElementById('langOptEn')?.classList.toggle('active', state.lang==='en');
+  // اگه لیست چت‌ها یا صفحه‌ی چت باز باشن، دوباره رندرشون می‌کنیم که متن‌های دینامیک هم عوض بشن
+  if(state.token && document.getElementById('s-list').classList.contains('active')) renderChatList();
+  if(state.token && document.getElementById('s-chat').classList.contains('active') && state.activeChat) openChat(state.activeChat);
+}
+
+function toggleLang(){
+  state.lang = state.lang === 'fa' ? 'en' : 'fa';
+  applyLang();
+}
+
+function setLang(lang){
+  state.lang = lang;
+  applyLang();
+}
+
+let state = { phone:'', token:null, user:null, socket:null, chats:[], activeChat:null, typingTimeout:null, lang:'fa' };
+applyLang();
 
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -195,9 +415,9 @@ async function requestOtp(){
   const errEl = document.getElementById('phoneErr');
   const btn = document.getElementById('phoneBtn');
   errEl.textContent = '';
-  if(!phone){ errEl.textContent = 'شماره رو وارد کن'; return; }
+  if(!phone){ errEl.textContent = t('phone_required'); return; }
   btn.disabled = true;
-  btn.textContent = 'در حال ارسال... (ممکنه تا ۵۰ ثانیه طول بکشه)';
+  btn.textContent = t('sending_txt');
   try{
     await api('/api/auth/otp/request', { method:'POST', body: JSON.stringify({ phone }) });
     state.phone = phone;
@@ -206,7 +426,7 @@ async function requestOtp(){
   }catch(e){
     errEl.textContent = 'سرور جواب نداد: ' + e.message + ' — دوباره بزن';
   }
-  finally{ btn.disabled = false; btn.textContent = 'دریافت کد تایید'; }
+  finally{ btn.disabled = false; btn.textContent = t('phone_btn'); }
 }
 
 async function verifyOtp(){
@@ -238,7 +458,7 @@ function connectSocket(){
   });
   state.socket.on('typing:start', ({chatId,userId})=>{
     if(state.activeChat && chatId===state.activeChat.id && userId!==state.user.id){
-      document.getElementById('chatTyping').textContent = 'در حال نوشتن...';
+      document.getElementById('chatTyping').textContent = t('typing_label');
     }
   });
   state.socket.on('typing:stop', ({chatId})=>{
@@ -255,19 +475,26 @@ async function loadChats(){
 }
 
 function initials(name){ return (name||'?').trim().charAt(0); }
+function avatarClass(name){
+  const colors = ['g0','g1','g2','g3','g4'];
+  let hash = 0;
+  const str = name || '?';
+  for(let i=0;i<str.length;i++){ hash = (hash * 31 + str.charCodeAt(i)) % colors.length; }
+  return colors[Math.abs(hash) % colors.length];
+}
 
 function renderChatList(){
   const el = document.getElementById('chatListEl');
   if(state.chats.length === 0){
-    el.innerHTML = '<div class="empty-state">هنوز چتی نداری 🌱<br>روی دکمه‌ی + پایین بزن و یه چت جدید شروع کن</div>';
+    el.innerHTML = `<div class="empty-state">${t('empty_chats')}</div>`;
     return;
   }
   el.innerHTML = state.chats.map(c=>{
     const other = c.type==='DIRECT' ? (c.participants.find(p=>p.id!==state.user.id) || c.participants[0]) : null;
-    const title = c.type==='GROUP' ? (c.title||'گروه') : (other ? other.displayName : 'کاربر');
-    const preview = c.lastMessage ? (c.lastMessage.content || 'رسانه') : 'شروع مکالمه...';
+    const title = c.type==='GROUP' ? (c.title||t('group_label')) : (other ? other.displayName : t('user_label'));
+    const preview = c.lastMessage ? (c.lastMessage.content || t('media_label')) : t('start_convo');
     return `<div class="chat-item" onclick='openChat(${JSON.stringify(c).replace(/'/g,"&#39;")})'>
-      <div class="avatar">${initials(title)}</div>
+      <div class="avatar ${avatarClass(title)}">${initials(title)}</div>
       <div class="chat-info">
         <div class="chat-row1"><div class="chat-name">${title}</div></div>
         <div class="chat-preview">${preview}</div>
@@ -292,9 +519,9 @@ function searchUsers(){
     try{
       const users = await api('/api/users/search?q=' + encodeURIComponent(q));
       resultsEl.innerHTML = users.map(u=>`<div class="user-result" onclick='startChat("${u.id}")'>
-        <div class="avatar">${initials(u.displayName)}</div>
+        <div class="avatar ${avatarClass(u.displayName)}">${initials(u.displayName)}</div>
         <div>${u.displayName}</div>
-      </div>`).join('') || '<div class="empty-state">کسی پیدا نشد</div>';
+      </div>`).join('') || `<div class="empty-state">${t('no_results')}</div>`;
     }catch(e){ resultsEl.innerHTML = '<div class="empty-state">خطا: '+e.message+'</div>'; }
   }, 400);
 }
@@ -311,25 +538,26 @@ async function startChat(targetUserId){
 async function openChat(chat){
   state.activeChat = chat;
   const other = chat.type==='DIRECT' ? (chat.participants ? chat.participants.find(p=>p.id!==state.user.id) : null) : null;
-  const title = chat.type==='GROUP' ? (chat.title||'گروه') : (other ? other.displayName : 'چت');
+  const title = chat.type==='GROUP' ? (chat.title||t('group_label')) : (other ? other.displayName : t('chat_label'));
   document.getElementById('chatName').textContent = title;
   document.getElementById('chatAvatar').textContent = initials(title);
+  document.getElementById('chatAvatar').className = 'avatar ' + avatarClass(title);
   document.getElementById('chatTyping').textContent = '';
-  document.getElementById('messagesEl').innerHTML = '<div class="loading">در حال بارگذاری پیام‌ها...</div>';
+  document.getElementById('messagesEl').innerHTML = `<div class="loading">${t('loading_messages')}</div>`;
   showScreen('s-chat');
   try{
     const messages = await api('/api/messages/' + chat.id);
     document.getElementById('messagesEl').innerHTML = '';
     messages.forEach(renderMessage);
     scrollMessages();
-  }catch(e){ document.getElementById('messagesEl').innerHTML = '<div class="empty-state">خطا در بارگذاری پیام‌ها</div>'; }
+  }catch(e){ document.getElementById('messagesEl').innerHTML = `<div class="empty-state">${t('messages_error')}</div>`; }
 }
 
 function renderMessage(msg){
   const mine = msg.senderId === state.user.id || msg.sender?.id === state.user.id;
   const el = document.createElement('div');
   el.className = 'msg ' + (mine ? 'out' : 'in');
-  const time = new Date(msg.createdAt).toLocaleTimeString('fa-IR', {hour:'2-digit', minute:'2-digit'});
+  const time = new Date(msg.createdAt).toLocaleTimeString(state.lang==='en' ? 'en-US' : 'fa-IR', {hour:'2-digit', minute:'2-digit'});
   el.innerHTML = `<div class="bubble">${msg.content||''}</div><div class="meta">${time}</div>`;
   document.getElementById('messagesEl').appendChild(el);
 }
@@ -358,6 +586,27 @@ function onTyping(){
   state.typingTimeout = setTimeout(()=>{
     state.socket.emit('typing:stop', { chatId: state.activeChat.id });
   }, 1500);
+}
+
+function openSettings(){
+  document.getElementById('settingsAvatar').textContent = initials(state.user.displayName);
+  document.getElementById('settingsName').value = state.user.displayName || '';
+  document.getElementById('settingsPhone').value = state.user.phone || '';
+  document.getElementById('settingsErr').textContent = '';
+  showScreen('s-settings');
+}
+
+async function saveSettings(){
+  const displayName = document.getElementById('settingsName').value.trim();
+  const errEl = document.getElementById('settingsErr');
+  errEl.textContent = '';
+  if(!displayName){ errEl.textContent = t('name_required'); return; }
+  try{
+    const updated = await api('/api/users/me', { method:'PUT', body: JSON.stringify({ displayName }) });
+    state.user = updated;
+    showScreen('s-list');
+    loadChats();
+  }catch(e){ errEl.textContent = 'خطا: ' + e.message; }
 }
 </script>
 </body>
